@@ -1,32 +1,37 @@
 // Create web server
-const express = require("express");
-const cors = require("cors");
-const bodyParser = require("body-parser");
+const express = require('express');
+const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+const cors = require('cors');
+
 const app = express();
-const port = 3000;
+const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// Middleware
 app.use(bodyParser.json());
+app.use(cors());
 
-let comments = [];
-
-// Get all comments
-app.get("/comments", (req, res) => {
-    res.json(comments);
+// MongoDB connection
+mongoose.connect('mongodb://localhost:27017/comments', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
 });
 
-// Add a new comment
-app.post("/comments", (req, res) => {
-    const { name, comment } = req.body;
-    if (!name || !comment) {
-        return res.status(400).json({ error: "Name and comment are required" });
+// Define a schema and model for comments
+const commentSchema = new mongoose.Schema({
+    name: String,
+    email: String,
+    comment: String,
+});
+
+const Comment = mongoose.model('Comment', commentSchema);
+
+// Routes
+app.get('/comments', async (req, res) => {
+    try {
+        const comments = await Comment.find();
+        res.json(comments);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching comments' });
     }
-    const newComment = { name, comment };
-    comments.push(newComment);
-    res.status(201).json(newComment);
-});
-
-// Start the server
-app.listen(port, () => {
-    console.log(`Server is running at http://localhost:${port}`);
 });
