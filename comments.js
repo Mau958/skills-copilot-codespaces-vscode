@@ -1,29 +1,25 @@
-// Create web server
+// Create web server  
 const express = require('express');
 const app = express();
-const port = 3000;
+const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const fs = require('fs');
 
-// Middleware to parse JSON bodies
+// Middleware
 app.use(bodyParser.json());
 
-// In-memory database (for demonstration purposes)
-let comments = [];
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost:27017/comments', { useNewUrlParser: true, useUnifiedTopology: true });
 
-// Route to get all comments
-app.get('/comments', (req, res) => {
-  res.json(comments);
+// Comment schema
+const commentSchema = new mongoose.Schema({
+  name: String,
+  comment: String,
 });
 
-// Route to add a new comment
-app.post('/comments', (req, res) => {
-  const comment = req.body;
-  comments.push(comment);
-  res.status(201).json(comment);
-});
+// Comment model
+const Comment = mongoose.model('Comment', commentSchema);
 
-// Start the server
-app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
+// Routes
+app.get('/', (req, res) => {
+  res.send('Welcome to the comments API!');
 });
